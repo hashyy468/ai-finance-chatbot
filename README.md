@@ -1,156 +1,103 @@
-# AI Finance Chatbot – Backend (Expense Categorization Service)
+# AI Finance Platform
 
-## Overview
-
-This repository contains the **backend foundation** for an AI-powered finance chatbot.
-The first implemented module is an **Expense Categorization Service**, which classifies
-transaction descriptions into predefined financial categories.
-
-This backend is designed with **clean architecture, scalability, and production-readiness**
-in mind and will be incrementally extended to support full chatbot functionality.
+An AI-powered finance platform developed as part of a technical assignment.  
+This repository demonstrates backend-focused financial intelligence using a **hybrid approach** that combines **rule-based logic** with **LLM-powered reasoning**.
 
 ---
 
-## Why Expense Categorization?
+## 📌 Project Overview
 
-Expense categorization is a **core building block** of personal finance systems.
+This repository contains two independent backend systems:
 
-Before a chatbot can:
-- Analyze spending
-- Suggest budgets
-- Detect anomalies
-- Provide recommendations
+### 1️⃣ Expense Categorization System
+A service that categorizes transaction descriptions (e.g., bank statements) into predefined expense categories using NLP and rule-based logic.
 
-…it must first **understand where money is being spent**.
+### 2️⃣ AI Finance Chatbot
+A virtual finance assistant that answers personal finance queries related to:
+- Budgeting
+- Savings
+- Credit cards
+- EMIs
+- Basic investing
 
-This service solves that problem in a reliable and cost-efficient way.
-
----
-
-## Dual-Layer Categorization Strategy
-
-The system uses a **hybrid approach**:
-
-### 1. Rule-Based Categorization (Primary)
-- Fast and deterministic
-- Uses keyword matching (e.g. "Starbucks" → Food)
-- Zero API cost
-- Handles common and predictable transactions
-
-### 2. AI-Based Categorization (Fallback)
-- Triggered only when rules fail
-- Uses Google Gemini LLM for semantic understanding
-- Handles ambiguous or unseen descriptions
-- Ensures high coverage without overusing AI
-
-This design balances **performance, cost, and accuracy**.
+The chatbot uses **intent detection**, **rule-based responses**, and **LLM reasoning with fallback support** to ensure reliability.
 
 ---
 
-## Project Structure
+## 🧠 Architecture Philosophy
+
+- **Hybrid Intelligence**
+  - Rule-based responses for fast, deterministic answers
+  - LLM-based reasoning for complex explanations
+- **Fail-safe Design**
+  - System always responds, even if the LLM is slow or unavailable
+- **Backend-First Approach**
+  - REST APIs designed for easy frontend or client integration
+- **Deployment-Oriented**
+  - Optimized for low-resource servers (2 vCPU, 2GB RAM)
+
+---
+
+## 📁 Repository Structure
 
 ```text
-backend/expense-categorizer/
-├── src/
-│   ├── controllers/        # Request handling logic
-│   ├── routes/             # API routes
-│   ├── services/           # Business logic (rules + AI)
-│   └── app.js              # Express app configuration
-├── server.js               # Server entry point
-├── package.json
-├── package-lock.json
-└── .env                    # Environment variables (ignored)
+backend/
+├── expense-categorizer/
+│   ├── src/
+│   ├── server.js
+│   ├── package.json
+│   └── README.md        # Expense Categorizer documentation
+│
+├── finance-chatbot/
+│   ├── src/
+│   ├── server.js
+│   ├── package.json
+│   └── README.md        # Finance Chatbot documentation
+│
+└── README.md            # Root project overview (this file)
 ```
+Each backend module has its own README explaining:
 
----
+- Architecture
 
-## Setup Instructions (Local)
+- Setup
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/hashyy468/ai-finance-chatbot.git
-```
+- API endpoints
 
-### 2. Navigate to the backend directory
-```bash
-cd ai-finance-chatbot/backend/expense-categorizer
-```
+- Design decisions
 
-### 3. Install dependencies
-```bash
-npm install
-```
+## 🛠 Tech Stack
 
-### 4. Configure environment variables
+- **Programming Language**: JavaScript (Node.js)
 
-Create a `.env` file inside `backend/expense-categorizer/`:
+- **Backend Framework**: Express.js
 
-```env
-PORT=3000
-GEMINI_API_KEY=your_google_gemini_api_key
-```
+- AI Integration:
 
-### 5. Start the server
-```bash
-node server.js
-```
+  - Ollama (local LLMs like ```phi```)
 
-Server will run at:
-```
-http://localhost:3000
-```
+  - Rule-based deterministic systems
 
----
+- **API Testing**: Postman
 
-## API Documentation
+- **Deployment Target**: Vultr (2 vCPU, 2GB RAM)
 
-### POST `/api/categorize`
+## 🚀 Getting Started
 
-Categorizes a transaction description into a financial category.
+Each service can be run independently.
 
-#### Request Body
-```json
-{
-  "description": "Lunch at Starbucks"
-}
-```
+Refer to:
 
-#### Response (Rule-based)
-```json
-{
-  "description": "Lunch at Starbucks",
-  "category": "Food",
-  "method": "rule"
-}
-```
+- ```backend/expense-categorizer/README.md```
 
-#### Response (AI fallback)
-```json
-{
-  "description": "Monthly subscription for skydiving lessons",
-  "category": "Entertainment",
-  "method": "ai"
-}
-```
+- ```backend/finance-chatbot/README.md```
 
----
+for detailed setup instructions and API usage.
 
-## How It Works
+## 📌 Notes
 
-1. Request is validated at the controller layer
-2. Rule-based categorization is attempted first
-3. If no rule matches, Gemini AI is invoked
-4. Response includes both category and method used
+- **Frontend (React.js)** will be added later.
 
----
+- API-first design allows seamless frontend or mobile integration.
 
-## Future Enhancements
-
-- Conversational finance chatbot (Task A)
-- User budgeting and savings insights
-- Database persistence
-- Authentication and user profiles
-- Deployment on Vultr (production environment)
-
----
-
+- Focus of this project is on backend **correctness**, **reliability**, and **explainability**.
