@@ -1,25 +1,33 @@
-/**
- * Detects user intent using rule-based NLP.
- * This runs BEFORE calling any LLM.
- */
 export function detectIntent(message) {
-  const text = message.toLowerCase();
+  const text = message.toLowerCase().trim();
 
-  if (text.includes("save") || text.includes("saving")) {
-    return "savings";
+  if (/^(hi|hello|hey|hey there|hii|hiya)$/.test(text)) {
+    return { intent: "GREETING" };
   }
 
-  if (text.includes("budget")) {
-    return "budgeting";
+  if (text.startsWith("what is") || text.startsWith("define")) {
+    return { intent: "DEFINITION" };
   }
 
-  if (text.includes("invest") || text.includes("mutual")) {
-    return "investing";
+  if (
+    /(budget|expense|expenses|spending|rent|utilities|bills|grocery)/.test(text)
+  ) {
+    return { intent: "BUDGETING" };
   }
 
-  if (text.includes("credit") || text.includes("emi") || text.includes("loan")) {
-    return "credit";
+  if (
+    /(invest|investment|sip|mutual|saving|savings|fd|fixed deposit)/.test(text)
+  ) {
+    return { intent: "INVESTING" };
   }
 
-  return "general_finance";
+  if (/(loan|emi|debt|credit card|repayment)/.test(text)) {
+    return { intent: "DEBT" };
+  }
+
+  if (/(income|salary|earn|earning)/.test(text)) {
+    return { intent: "FINANCE_GENERAL" };
+  }
+
+  return { intent: "OUT_OF_SCOPE" };
 }

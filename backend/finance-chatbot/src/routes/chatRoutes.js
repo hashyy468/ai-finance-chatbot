@@ -1,9 +1,10 @@
 import express from "express";
 import { handleChat } from "../controllers/chatController.js";
-import validateRequest from "../middleware/validateRequest.js";
+import { resetSession } from "../controllers/sessionController.js";
 
 const router = express.Router();
 
-router.post("/", validateRequest, handleChat);
+router.post("/", handleChat);
+router.post("/reset", resetSession);
 
 export default router;

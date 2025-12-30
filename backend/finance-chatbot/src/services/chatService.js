@@ -1,136 +1,73 @@
 import fetch from "node-fetch";
-import { buildPrompt } from "../prompts/financePrompt.js";
-import { detectIntent } from "./intentService.js";
-import { ruleBasedFinanceFallback } from "./fallbackService.js";
-import { isSimpleQuestion } from "./complexityService.js";
+import financeSystemPrompt from "../prompts/financePrompt.js";
+import { getContext, saveContext } from "./memoryService.js";
 
-/**
- * Safely normalize LLM output
- * Handles:
- * - "\"text\"" (double-encoded JSON)
- * - escaped quotes
- * - leaked prompt text
- */
-function cleanLLMResponse(raw) {
-  if (!raw) return "";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL = "llama-3.1-8b-instant";
 
-  let text = raw;
-
-  // Step 1: force string
-  text = String(text);
-
-  // Step 2: remove wrapping quotes (handles "\"text\"" and ""text"")
-  while (
-    (text.startsWith('"') && text.endsWith('"')) ||
-    (text.startsWith("'") && text.endsWith("'"))
-  ) {
-    text = text.slice(1, -1);
-  }
-
-  // Step 3: unescape escaped quotes & slashes
-  text = text
-    .replace(/\\"/g, '"')
-    .replace(/\\'/g, "'");
-
-  // Step 4: normalize newlines
-  text = text.replace(/\\n/g, " ");
-
-  // Step 5: remove prompt leakage (VERY IMPORTANT)
-  text = text.replace(/User question:.*/is, "");
-
-  // Step 6: trim trailing punctuation artifacts
-  text = text.replace(/\s*[,]+$/, "");
-
-  // Step 7: final cleanup
-  return text.replace(/\s+/g, " ").trim();
-}
-
-
-/**
- * Main chatbot response handler
- * - Simple queries → rule-based
- * - Complex queries → Ollama (phi)
- */
 export async function generateAIResponse(context, message) {
-  const intent = detectIntent(message);
-  const simple = isSimpleQuestion(message);
-
-  /**
-   * 🚀 SIMPLE QUESTION → RULE-BASED ONLY
-   */
-  if (simple) {
-    const fallback = ruleBasedFinanceFallback(message);
-
-    return {
-      intent,
-      response: {
-        summary: fallback.summary,
-        disclaimer:
-          "This information is for educational purposes only and not financial advice."
-      },
-      followUps: fallback.followUps
-    };
-  }
-
-  /**
-   * 🧠 COMPLEX QUESTION → TRY OLLAMA
-   */
-  const prompt = buildPrompt({ intent }, message);
-
-  const controller = new AbortController();
-  const TIMEOUT_MS = 40000; // 40s for local LLM
-
-  const timeout = setTimeout(() => {
-    controller.abort();
-  }, TIMEOUT_MS);
+  const { sessionId } = context;
 
   try {
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const history = getContext(sessionId);
+
+    const messages = [
+      { role: "system", content: financeSystemPrompt },
+
+      ...history.map((msg) => ({
+        role: msg.role,
+        content: msg.content
+      })),
+
+      { role: "user", content: message }
+    ];
+
+    const response = await fetch(GROQ_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
       body: JSON.stringify({
-        model: "phi",        // lightweight, fast model
-        prompt,
-        stream: false
+        model: MODEL,
+        messages,
+        temperature: 0.25,
+        max_tokens: 700,
       }),
-      signal: controller.signal
     });
 
-    clearTimeout(timeout);
-
     if (!response.ok) {
-      throw new Error("Ollama request failed");
+      throw new Error(`Groq API error: ${response.status}`);
     }
 
     const data = await response.json();
+    const rawContent = data.choices?.[0]?.message?.content;
 
-    return {
-      intent,
-      response: {
-        summary: cleanLLMResponse(data.response),
-        disclaimer:
-          "This information is for educational purposes only and not financial advice."
-      },
-      followUps: ruleBasedFinanceFallback(message).followUps
-    };
+    if (!rawContent) {
+      throw new Error("Empty response from model");
+    }
+
+    // ✅ SAVE CONTEXT FIRST (KEY FIX)
+    saveContext(sessionId, "user", message);
+    saveContext(sessionId, "assistant", rawContent);
+
+    const firstBrace = rawContent.indexOf("{");
+    const lastBrace = rawContent.lastIndexOf("}");
+
+    if (firstBrace === -1 || lastBrace === -1) {
+      throw new Error("Invalid JSON response");
+    }
+
+    return JSON.parse(rawContent.slice(firstBrace, lastBrace + 1));
 
   } catch (error) {
-    /**
-     * 🛟 FINAL SAFETY NET
-     * Ensures chatbot always responds
-     */
-    console.warn("LLM failed or timed out. Using rule-based fallback.");
-
-    const fallback = ruleBasedFinanceFallback(message);
+    console.error("Chat service error:", error.message);
 
     return {
-      intent,
       response: {
-        summary: fallback.summary,
-        disclaimer:
-          "This information is for educational purposes only and not financial advice."
-      },
-      followUps: fallback.followUps
+        summary:
+          "I’m having trouble answering that right now. Please try again shortly."
+      }
     };
   }
 }

@@ -9,7 +9,8 @@ export default function validateRequest(req, res, next) {
     return res.status(400).json({ error: "sessionId is required" });
   }
 
-  if (message.length < 3) {
+  // Allow short but meaningful queries like "FD", "EMI?"
+  if (message.trim().length < 2) {
     return res.status(400).json({ error: "Message too short" });
   }
 
