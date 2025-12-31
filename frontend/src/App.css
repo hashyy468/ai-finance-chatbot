@@ -234,3 +234,48 @@ html, body {
   color: white;
   border: none;
 }
+
+/* ===============================
+   MODE TOGGLE (BOTH / EXPENSE / FINANCE)
+   =============================== */
+.mode-toggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.mode-toggle button {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-toggle button:hover {
+  border-color: var(--purple);
+  color: white;
+}
+
+.mode-toggle button.active {
+  background: var(--purple);
+  color: white;
+  border-color: var(--purple);
+}
+
+/* ===============================
+   DISCLAIMER TEXT
+   =============================== */
+.disclaimer {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+  opacity: 0.85;
+}
+

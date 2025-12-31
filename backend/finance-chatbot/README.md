@@ -1,170 +1,108 @@
+
 # AI Finance Chatbot – Backend
 
 ## Overview
 
-This directory contains the **backend implementation** of an AI-powered finance chatbot.
-The system is designed to answer common personal finance questions in a **safe, reliable, and production-oriented manner**.
+This service powers the **finance question-answering capability** of the AI Finance Assistant.
 
-The chatbot uses a **hybrid intelligence architecture**, combining:
-- Deterministic rule-based logic for speed and correctness
-- AI reasoning via a local Large Language Model (LLM) for complex explanations
-
-This design mirrors real-world fintech systems where reliability and safety are prioritized.
+It is designed with **safety, predictability, and real-world fintech constraints** in mind.
 
 ---
 
 ## Features
 
-- Answers questions related to:
+- Answers questions on:
   - Budgeting
   - Savings
-  - Credit cards
   - EMIs
+  - Credit
   - Basic investing
-- Automatic intent detection
-- Complexity-based routing (simple vs complex questions)
-- Rule-based fallback for guaranteed responses
-- LLM reasoning for explanatory queries
-- Structured responses with disclaimers
-- Automated follow-up suggestions
+- Intent detection
+- Rule-based guaranteed responses
+- LLM-powered explanations
+- Session-based memory
+- Follow-up suggestions
+- Mandatory disclaimers
 
 ---
 
-## High-Level Architecture
-```
+## Architecture
+
+```text
 User Query
 ↓
 Intent Detection (Rule-Based)
 ↓
-Complexity Detection
-├── Simple Query → Rule-Based Engine
-└── Complex Query → LLM (Ollama - phi)
-├── Timeout Protection
-└── Rule-Based Fallback
+Routing Logic
+├── Simple → Rule-Based Responses
+└── Complex → LLM (Local via Groq)
+↓
+Post-Processing
+├── Disclaimer Injection
+└── Follow-Up Suggestions
 ↓
 Structured JSON Response
 ```
+## Why This Architecture?
 
-### Why This Architecture?
+- Finance is a sensitive domain
 
-- Finance is a sensitive domain → deterministic logic ensures safety
-- LLMs are powerful but unreliable → fallback guarantees stability
-- Local inference avoids dependency on paid or unstable APIs
-- Timeout protection ensures good user experience
+- Deterministic logic ensures safety
 
----
+- LLM adds flexibility without risking hallucinations
 
-## Technology Stack
+- Local inference avoids external API dependency
 
-- Node.js (LTS)
-- Express.js
-- REST APIs
-- Ollama (local LLM inference)
-- LLM Model: `phi` (lightweight, CPU-friendly)
-- JavaScript (ES Modules)
-
----
-
-## Project Structure
-```text
+## Folder Structure
+```
 finance-chatbot/
 ├── src/
-│ ├── controllers/ # HTTP request handling
-│ ├── routes/ # API route definitions
+│ ├── controllers/     # Request handling
+│ ├── routes/          # API routing
 │ ├── services/
-│ │ ├── chatService.js # Core orchestration logic
-│ │ ├── intentService.js # Intent detection
-│ │ ├── complexityService.js # Simple vs complex routing
-│ │ ├── fallbackService.js # Rule-based responses
+│ │ ├── chatService.js
+│ │ ├── intentService.js
+│ │ ├── memoryService.js
+│ │ └── ruleBased.js
 │ └── prompts/
-│  └── financePrompt.js # Prompt engineering
-├── app.js # Express app configuration
-├── server.js # Server entry point
+│   └── financePrompt.js
+├── app.js
+├── server.js
 ├── package.json
-├── .env.example
 └── README.md
 ```
 
----
-
-## Core Components
-
-### Intent Detection
-Deterministic logic identifies the user’s intent (e.g., savings, budgeting, credit).
-This avoids unnecessary AI calls and ensures predictable behavior.
-
-### Complexity Detection
-Queries are classified as:
-- **Simple**: Definitions or best practices → handled by rules
-- **Complex**: Explanations or reasoning → handled by LLM
-
-### Rule-Based Engine
-Used for:
-- Simple finance questions
-- Guaranteed fallback when AI fails
-- Safe and deterministic responses
-
-### LLM Integration (Ollama)
-- Uses local inference via Ollama
-- Model: `phi`
-- Timeout-protected
-- Output is sanitized before returning to clients
-
----
-
-## API Documentation
-
-### POST `/api/chat`
-
-Handles a single chatbot message.
-
-#### Request Body
-```json
+## API Endpoint
+### POST ```/api/chat```
+### Request
+```
 {
-  "message": "How much should I save every month?",
-  "sessionId": "user-123"
+  "message": "How should I budget my salary?",
+  "sessionId": "user-1"
 }
 ```
-### Response Body
-```json
+### Response
+```
 {
-  "intent": "savings",
   "response": {
-    "summary": "A common guideline is to save at least 20% of your monthly income to build financial security.",
-    "disclaimer": "This information is for educational purposes only and not financial advice."
+    "summary": "A common guideline is the 50-30-20 rule...",
+    "disclaimer": "This is general financial information, not financial advice."
   },
   "followUps": [
-    "Do you already have an emergency fund?",
-    "Would you like help creating a savings plan?"
+    "Can you give an example?",
+    "How do I apply this?"
   ]
 }
 ```
-## Environment Setup
-### Prerequisites
 
-- Node.js (v18 or later)
-- Ollama installed locally
-
-### Install LLM Model
-```bash
-ollama pull phi
+### Running Locally
 ```
-
-### Environment Variables
-
-Create a .env file using the example below:
-```bash
-PORT=4000
-```
-### Running the Backend Locally
-```text
 npm install
 node server.js
 ```
 
+### Server runs at:
 
-### Server will start at:
-```text
-http://localhost:4000
+``` 
+http://localhost:4000 
 ```
-

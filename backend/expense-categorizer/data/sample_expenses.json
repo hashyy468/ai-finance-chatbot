@@ -1,0 +1,25 @@
+[
+  { "description": "Uber ride to office", "label": "Transport" },
+  { "description": "Metro card recharge", "label": "Transport" },
+  { "description": "Petrol refill at HP pump", "label": "Transport" },
+
+  { "description": "Lunch at Starbucks", "label": "Food" },
+  { "description": "Pizza from Domino's", "label": "Food" },
+  { "description": "Groceries from Reliance Mart", "label": "Food" },
+
+  { "description": "Netflix monthly subscription", "label": "Entertainment" },
+  { "description": "Movie tickets at PVR", "label": "Entertainment" },
+  { "description": "Spotify premium payment", "label": "Entertainment" },
+
+  { "description": "Electricity bill payment", "label": "Utilities" },
+  { "description": "Water bill", "label": "Utilities" },
+  { "description": "Internet broadband recharge", "label": "Utilities" },
+
+  { "description": "Amazon shopping order", "label": "Shopping" },
+  { "description": "Bought clothes from mall", "label": "Shopping" },
+  { "description": "Flipkart electronics purchase", "label": "Shopping" },
+
+  { "description": "Skydiving training session", "label": "Entertainment" },
+  { "description": "Online course subscription", "label": "Other" },
+  { "description": "Donation to charity", "label": "Other" }
+]

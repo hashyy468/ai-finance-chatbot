@@ -1,18 +1,27 @@
 {
   "name": "expense-categorizer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Expense categorization service using rule-based logic with AI fallback",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node server.js",
+    "evaluate": "node scripts/evaluateAccuracy.js",
+    "test": "echo \"No tests specified\""
   },
-  "keywords": [],
+  "keywords": [
+    "expense",
+    "categorization",
+    "finance",
+    "ai",
+    "nlp"
+  ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "node-fetch": "^2.6.7"
   }
 }

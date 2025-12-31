@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { sendFinanceChat } from "./api";
+import {
+  sendFinanceChat,
+  categorizeExpense,
+  categorizeExpenseAI
+} from "./api";
 import { toggleTheme } from "./theme";
 import logo from "./assets/logo.png";
 
@@ -10,15 +14,14 @@ export default function App() {
   const [theme, setTheme] = useState("dark");
   const [chatStarted, setChatStarted] = useState(false);
 
-  // ✅ sessionId per chat
+  // 🔘 mode toggle: BOTH | EXPENSE | FINANCE
+  const [mode, setMode] = useState("both");
+
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
 
   const chatEndRef = useRef(null);
   const typingTimerRef = useRef(null);
 
-  /* ===============================
-     THEME HANDLING
-     =============================== */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
@@ -27,9 +30,12 @@ export default function App() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  /* ===============================
-     STREAMING (TYPEWRITER)
-     =============================== */
+  function looksLikeExpense(text) {
+    return /(paid|spent|rs|₹|\d+)|(uber|ola|rent|netflix|food|cab|dinner|bill)/i.test(
+      text
+    );
+  }
+
   function streamBotMessage(fullText, meta = {}) {
     let index = 0;
 
@@ -40,10 +46,9 @@ export default function App() {
 
     typingTimerRef.current = setInterval(() => {
       index++;
-
       setMessages(prev => {
         const last = prev[prev.length - 1];
-        if (!last || !last.typing) return prev;
+        if (!last?.typing) return prev;
 
         return [
           ...prev.slice(0, -1),
@@ -53,7 +58,6 @@ export default function App() {
 
       if (index >= fullText.length) {
         clearInterval(typingTimerRef.current);
-
         setMessages(prev => {
           const last = prev[prev.length - 1];
           return [
@@ -67,12 +71,9 @@ export default function App() {
           ];
         });
       }
-    }, 16);
+    }, 14);
   }
 
-  /* ===============================
-     SEND MESSAGE
-     =============================== */
   async function handleSend(text) {
     if (!text.trim() || loading) return;
 
@@ -83,45 +84,70 @@ export default function App() {
     setLoading(true);
 
     try {
-      const data = await sendFinanceChat(text, sessionId); // ✅ pass sessionId
+      let responseText = "";
+      let followUps = [];
+      let disclaimer = "";
+
+      const isExpense = looksLikeExpense(text);
+
+      if (mode === "expense" || (mode === "both" && isExpense)) {
+        let res = await categorizeExpense(text);
+        if (!res?.category || res.category === "Other") {
+          res = await categorizeExpenseAI(text);
+        }
+
+        responseText =
+          `📊 Expense Categorized\n\n` +
+          `Category: ${res.category}\n` +
+          `Method: ${res.method}\n` +
+          `Confidence: ${Math.round(res.confidence * 100)}%`;
+
+        followUps = [
+          "Add this to monthly budget",
+          "Show similar past expenses",
+          "Tips to reduce this expense"
+        ];
+
+        disclaimer =
+          "This categorization is an estimate and may not be fully accurate.";
+      } else {
+        const data = await sendFinanceChat(text, sessionId);
+        responseText = data.response.summary;
+
+        followUps = [
+          "Can you give an example?",
+          "How do I apply this?",
+          "What should I do next?"
+        ];
+
+        disclaimer =
+          "This is general financial information, not professional financial advice.";
+      }
 
       setTimeout(() => {
         setLoading(false);
-        streamBotMessage(data.response.summary, {
-          disclaimer: data.response.disclaimer,
-          followUps: data.followUps
-        });
-      }, 300);
-
+        streamBotMessage(responseText, { followUps, disclaimer });
+      }, 250);
     } catch {
       setLoading(false);
       setMessages(prev => [
         ...prev,
-        { role: "bot", text: "Unable to reach the server." }
+        { role: "bot", text: "Backend not reachable. Check running servers." }
       ]);
     }
   }
 
-  /* ===============================
-     NEW CHAT RESET (CRITICAL FIX)
-     =============================== */
   function handleNewChat() {
-    if (typingTimerRef.current) {
-      clearInterval(typingTimerRef.current);
-    }
-
+    if (typingTimerRef.current) clearInterval(typingTimerRef.current);
     setMessages([]);
     setInput("");
     setLoading(false);
     setChatStarted(false);
-
-    // ✅ brand-new session → backend memory cleared
     setSessionId(crypto.randomUUID());
   }
 
   return (
     <div className="app-root">
-      {/* HEADER */}
       <header className="app-header">
         <div className="brand">
           <img src={logo} alt="AI Finance Assistant" className="brand-logo" />
@@ -129,6 +155,18 @@ export default function App() {
         </div>
 
         <div className="header-actions">
+          <div className="mode-toggle">
+            {["both", "expense", "finance"].map(m => (
+              <button
+                key={m}
+                className={mode === m ? "active" : ""}
+                onClick={() => setMode(m)}
+              >
+                {m.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           {chatStarted && (
             <button className="new-chat-btn" onClick={handleNewChat}>
               + New Chat
@@ -144,23 +182,20 @@ export default function App() {
         </div>
       </header>
 
-      {/* CHAT AREA */}
       <main className="chat-area">
-        {chatStarted && <div className="chat-rail" />}
-
         <div className="chat-column">
           {!chatStarted && (
             <section className="welcome-panel">
               <h2>Hi, I’m your AI Finance Assistant</h2>
               <p className="hero-subtitle">
-                Ask about savings, budgeting, EMIs, credit cards, or smarter financial decisions.
+                Ask finance questiions or categorize any expenses.
               </p>
 
               <div className="starter-pills">
                 {[
                   "How should I budget my salary?",
-                  "Is EMI better than a credit card?",
-                  "How much should I save monthly?"
+                  "Netflix subscription",
+                  "Uber ride to airport"
                 ].map(q => (
                   <button key={q} onClick={() => handleSend(q)}>
                     {q}
@@ -173,13 +208,15 @@ export default function App() {
           {messages.map((msg, idx) => (
             <div key={idx} className={`message ${msg.role}`}>
               <div className="bubble">
-                <p>{msg.text}</p>
+                <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>
+                  {msg.text}
+                </pre>
 
-                {!msg.typing && msg.disclaimer && (
+                {msg.disclaimer && (
                   <small className="disclaimer">{msg.disclaimer}</small>
                 )}
 
-                {!msg.typing && msg.followUps?.length > 0 && (
+                {msg.followUps?.length > 0 && (
                   <div className="followups">
                     {msg.followUps.map((q, i) => (
                       <button key={i} onClick={() => handleSend(q)}>
@@ -195,19 +232,15 @@ export default function App() {
           {loading && (
             <div className="message bot">
               <div className="bubble thinking">
-                <span />
-                Thinking
+                <span /> Thinking
               </div>
             </div>
           )}
 
           <div ref={chatEndRef} />
         </div>
-
-        {chatStarted && <div className="chat-rail" />}
       </main>
 
-      {/* INPUT */}
       <footer className="input-bar">
         <div className="input-wrapper">
           <input

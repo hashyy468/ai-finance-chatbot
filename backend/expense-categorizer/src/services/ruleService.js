@@ -1,9 +1,9 @@
 const RULES = {
-  Food: ['restaurant', 'starbucks', 'pizza', 'burger', 'grocery'],
-  Transport: ['uber', 'lyft', 'bus', 'train', 'metro', 'fuel'],
-  Shopping: ['amazon', 'flipkart', 'mall', 'clothing'],
-  Utilities: ['electric', 'water', 'internet', 'rent'],
-  Entertainment: ['netflix', 'movie', 'concert', 'spotify']
+  Food: ['restaurant', 'starbucks', 'pizza', 'burger', 'zomato', 'swiggy', 'cafe'],
+  Transport: ['uber', 'ola', 'lyft', 'bus', 'train', 'metro', 'fuel', 'petrol'],
+  Shopping: ['amazon', 'flipkart', 'mall', 'clothing', 'shoes'],
+  Utilities: ['electric', 'electricity', 'water', 'internet', 'wifi', 'rent', 'bill'],
+  Entertainment: ['netflix', 'spotify', 'movie', 'concert', 'prime']
 };
 
 const categorizeByRule = (description) => {
@@ -17,7 +17,7 @@ const categorizeByRule = (description) => {
     }
   }
 
-  return null; // trigger AI fallback
+  return null;
 };
 
 module.exports = { categorizeByRule };

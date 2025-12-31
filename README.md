@@ -1,103 +1,89 @@
-# AI Finance Platform
+# AI Finance Assistant – Full Stack System
 
-An AI-powered finance platform developed as part of a technical assignment.  
-This repository demonstrates backend-focused financial intelligence using a **hybrid approach** that combines **rule-based logic** with **LLM-powered reasoning**.
+## Overview
 
----
+This repository contains a **full-stack AI-powered finance assistant** that helps users:
 
-## 📌 Project Overview
+- Ask personal finance questions (budgeting, savings, EMIs, investing)
+- Categorize expenses from natural language inputs
+- Receive explainable, safe, and structured responses
 
-This repository contains two independent backend systems:
-
-### 1️⃣ Expense Categorization System
-A service that categorizes transaction descriptions (e.g., bank statements) into predefined expense categories using NLP and rule-based logic.
-
-### 2️⃣ AI Finance Chatbot
-A virtual finance assistant that answers personal finance queries related to:
-- Budgeting
-- Savings
-- Credit cards
-- EMIs
-- Basic investing
-
-The chatbot uses **intent detection**, **rule-based responses**, and **LLM reasoning with fallback support** to ensure reliability.
+The system is built using a **modular, production-style architecture** with clear separation between:
+- Frontend (UI & interaction logic)
+- Finance Chatbot Backend (intent-aware financial reasoning)
+- Expense Categorization Backend (hybrid rule + AI system)
 
 ---
 
-## 🧠 Architecture Philosophy
+## System Components
 
-- **Hybrid Intelligence**
-  - Rule-based responses for fast, deterministic answers
-  - LLM-based reasoning for complex explanations
-- **Fail-safe Design**
-  - System always responds, even if the LLM is slow or unavailable
-- **Backend-First Approach**
-  - REST APIs designed for easy frontend or client integration
-- **Deployment-Oriented**
-  - Optimized for low-resource servers (2 vCPU, 2GB RAM)
+### Frontend (React + Vite)
+- Modern chat-based UI
+- Mode toggle: **BOTH / EXPENSE / FINANCE**
+- Follow-up suggestions
+- Disclaimers for finance-related responses
+- Clean, responsive, dark-theme design
+~~~
+ `frontend/`
+~~~
+---
+
+###  Finance Chatbot Backend
+- Handles finance-related questions
+- Uses deterministic rules + LLM fallback
+- Safe responses with disclaimers
+- Session-based memory support
+~~~
+ `backend/finance-chatbot/`
+~~~
+---
+
+###  Expense Categorization Backend
+- Categorizes expenses into predefined categories
+- Hybrid approach:
+  - Rule-based (fast, deterministic)
+  - AI-based fallback (semantic understanding)
+- Confidence scoring & explainability
+~~~
+ `backend/expense-categorizer/`
+~~~
+---
+
+## Tech Stack
+
+- **Frontend**: React, Vite, CSS
+- **Backend**: Node.js, Express
+- **LLMs**:
+  - Finance chatbot → Groq (LLaMA 3.1)
+  - Expense categorization → Groq (LLaMA 3.1)
+- **Architecture Style**: Modular, service-based
 
 ---
 
-## 📁 Repository Structure
+## Project Structure
+~~~
+ai-finance-assistant/
+├── frontend/
+├── backend/
+│ ├── finance-chatbot/
+│ └── expense-categorizer/
+├── README.md
+~~~
+---
 
-```text
-backend/
-├── expense-categorizer/
-│   ├── src/
-│   ├── server.js
-│   ├── package.json
-│   └── README.md        # Expense Categorizer documentation
-│
-├── finance-chatbot/
-│   ├── src/
-│   ├── server.js
-│   ├── package.json
-│   └── README.md        # Finance Chatbot documentation
-│
-└── README.md            # Root project overview (this file)
-```
-Each backend module has its own README explaining:
+## Future Enhancements
 
-- Architecture
+- Persistent user budgets & expense history
+- Visual analytics (charts for spending & savings)
+- User authentication
+- Multi-currency support
+- Configurable confidence scoring
+- Better intent disambiguation
+- Production deployment (Docker + cloud)
 
-- Setup
+---
 
-- API endpoints
+## Running the Project
 
-- Design decisions
-
-## 🛠 Tech Stack
-
-- **Programming Language**: JavaScript (Node.js)
-
-- **Backend Framework**: Express.js
-
-- AI Integration:
-
-  - Ollama (local LLMs like ```phi```)
-
-  - Rule-based deterministic systems
-
-- **API Testing**: Postman
-
-- **Deployment Target**: Vultr (2 vCPU, 2GB RAM)
-
-## 🚀 Getting Started
-
-Each service can be run independently.
-
-Refer to:
-
-- ```backend/expense-categorizer/README.md```
-
-- ```backend/finance-chatbot/README.md```
-
-for detailed setup instructions and API usage.
-
-## 📌 Notes
-
-- **Frontend (React.js)** will be added later.
-
-- API-first design allows seamless frontend or mobile integration.
-
-- Focus of this project is on backend **correctness**, **reliability**, and **explainability**.
+Each module has its own `README.md` with setup instructions.  
+Please refer to them individually for local development.

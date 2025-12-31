@@ -1,41 +1,41 @@
-// frontend/src/api.js
-
-const FINANCE_API = 'http://localhost:4000';
-const EXPENSE_API = 'http://localhost:3000';
-
+/**
+ * Finance Chat API
+ */
 export async function sendFinanceChat(message, sessionId) {
-  const res = await fetch(`${FINANCE_API}/api/chat`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message,
-      sessionId, // ✅ dynamic session id
-    }),
+  const res = await fetch("/chat/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, sessionId })
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || 'Finance API failed');
-  }
-
+  if (!res.ok) throw new Error("Finance API failed");
   return res.json();
 }
 
+/**
+ * Rule-based Expense Categorization
+ */
 export async function categorizeExpense(description) {
-  const res = await fetch(`${EXPENSE_API}/api/categorize`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ description }),
+  const res = await fetch("/api/categorize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description })
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || 'Expense API failed');
-  }
+  if (!res.ok) throw new Error("Expense API failed");
+  return res.json();
+}
 
+/**
+ * AI Expense Categorization (fallback)
+ */
+export async function categorizeExpenseAI(description) {
+  const res = await fetch("/api/categorize/ai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description })
+  });
+
+  if (!res.ok) throw new Error("Expense AI failed");
   return res.json();
 }

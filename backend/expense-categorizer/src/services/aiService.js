@@ -1,29 +1,58 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const fetch = require("node-fetch");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL = "llama-3.1-8b-instant";
+
+const VALID_CATEGORIES = [
+  "Food",
+  "Transport",
+  "Shopping",
+  "Utilities",
+  "Entertainment",
+  "Other"
+];
 
 const categorizeByAI = async (description) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
     const prompt = `
-Categorize the following expense into exactly ONE of:
+Categorize the following expense into ONE category:
 Food, Transport, Shopping, Utilities, Entertainment, Other.
 
 Expense: "${description}"
 
-Return only the category name.
+Respond in JSON:
+{ "category": "...", "confidence": 0.xx }
 `;
 
-    const result = await model.generateContent(prompt);
-    const response = result.response.text().trim();
+    const response = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 50
+      })
+    });
 
-    const valid = ['Food', 'Transport', 'Shopping', 'Utilities', 'Entertainment'];
-    return valid.includes(response) ? response : 'Other';
+    const data = await response.json();
+    const parsed = JSON.parse(
+      data.choices?.[0]?.message?.content || "{}"
+    );
+
+    return {
+      category: VALID_CATEGORIES.includes(parsed.category)
+        ? parsed.category
+        : "Other",
+      confidence: parsed.confidence || 0.65,
+      method: "ai"
+    };
 
   } catch (err) {
-    console.error('Gemini error:', err);
-    return 'Other';
+    return { category: "Other", confidence: 0.6, method: "ai" };
   }
 };
 
