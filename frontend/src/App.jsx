@@ -1,51 +1,73 @@
 import { useState, useEffect, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import {
   sendFinanceChat,
   categorizeExpense,
   categorizeExpenseAI
 } from "./api";
+
 import { toggleTheme } from "./theme";
 import logo from "./assets/logo.png";
 
+/**
+ * Main Application Component
+ * Handles:
+ * - Chat UI rendering
+ * - Mode routing (Finance / Expense / Both)
+ * - Session management
+ * - Streaming bot responses
+ */
 export default function App() {
+  /* ------------------------- UI STATE ------------------------- */
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState("dark");
   const [chatStarted, setChatStarted] = useState(false);
 
-  //  mode toggle: BOTH | EXPENSE | FINANCE
+  /* ---------------------- MODE TOGGLE ------------------------- */
+  // BOTH | EXPENSE | FINANCE
   const [mode, setMode] = useState("finance");
 
-  function generateSessionId() {
-    return (
-      Date.now().toString(36) +
-      Math.random().toString(36).substring(2, 10)
-    );
-  }
+  /* ------------------- SESSION MANAGEMENT -------------------- */
+  // Explicit UUID usage to avoid crypto.randomUUID issues in production
+  const [sessionId, setSessionId] = useState(() => uuidv4());
 
-  const [sessionId, setSessionId] = useState(() => generateSessionId());
-
+  /* ---------------------- REFS ------------------------------- */
   const chatEndRef = useRef(null);
   const typingTimerRef = useRef(null);
 
+  /* ---------------------- EFFECTS ---------------------------- */
+  // Theme application
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
+  // Auto-scroll on new message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  /* ------------------ UTILITY FUNCTIONS ---------------------- */
+
+  /**
+   * Heuristic to detect if input resembles an expense
+   */
   function looksLikeExpense(text) {
     return /(paid|spent|rs|₹|\d+)|(uber|ola|rent|netflix|food|cab|dinner|bill)/i.test(
       text
     );
   }
 
+  /**
+   * Streams bot message character-by-character
+   * Adds follow-ups and disclaimers at the end
+   */
   function streamBotMessage(fullText, meta = {}) {
     let index = 0;
 
+    // Remove existing typing bubbles
     setMessages(prev => [
       ...prev.filter(m => !m.typing),
       { role: "bot", text: "", typing: true }
@@ -53,6 +75,7 @@ export default function App() {
 
     typingTimerRef.current = setInterval(() => {
       index++;
+
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (!last?.typing) return prev;
@@ -63,8 +86,10 @@ export default function App() {
         ];
       });
 
+      // End typing animation
       if (index >= fullText.length) {
         clearInterval(typingTimerRef.current);
+
         setMessages(prev => {
           const last = prev[prev.length - 1];
           return [
@@ -81,6 +106,12 @@ export default function App() {
     }, 14);
   }
 
+  /* ------------------ MESSAGE HANDLING ----------------------- */
+
+  /**
+   * Handles user message send
+   * Routes request based on mode & heuristics
+   */
   async function handleSend(text) {
     if (!text.trim() || loading) return;
 
@@ -97,8 +128,10 @@ export default function App() {
 
       const isExpense = looksLikeExpense(text);
 
+      /* ------------ EXPENSE FLOW ------------ */
       if (mode === "expense" || (mode === "both" && isExpense)) {
         let res = await categorizeExpense(text);
+
         if (!res?.category || res.category === "Other") {
           res = await categorizeExpenseAI(text);
         }
@@ -114,22 +147,22 @@ export default function App() {
           `Method: ${res.method}\n` +
           `Confidence: ${confidence}%`;
 
-        followUps = [];
-
         disclaimer =
           "This categorization is an estimate and may not be fully accurate.";
-      } else {
+      }
+
+      /* ------------ FINANCE FLOW ------------ */
+      else {
         const data = await sendFinanceChat(text, sessionId);
 
         responseText = data.response.summary;
-
-        // ✅ FIX: USE BACKEND FOLLOW-UPS (NO HARDCODING)
         followUps = data.response.followUps || [];
 
         disclaimer =
           "This is general financial information, not professional financial advice.";
       }
 
+      // Stream response
       setTimeout(() => {
         setLoading(false);
         streamBotMessage(responseText, { followUps, disclaimer });
@@ -143,17 +176,23 @@ export default function App() {
     }
   }
 
+  /**
+   * Resets chat state and generates new session
+   */
   function handleNewChat() {
     if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+
     setMessages([]);
     setInput("");
     setLoading(false);
     setChatStarted(false);
-    setSessionId(generateSessionId());
+    setSessionId(uuidv4());
   }
 
+  /* ---------------------- RENDER ----------------------------- */
   return (
     <div className="app-root">
+      {/* ---------------- HEADER ---------------- */}
       <header className="app-header">
         <div className="brand">
           <img src={logo} alt="AI Finance Assistant" className="brand-logo" />
@@ -188,6 +227,7 @@ export default function App() {
         </div>
       </header>
 
+      {/* ---------------- CHAT AREA ---------------- */}
       <main className="chat-area">
         <div className="chat-column">
           {!chatStarted && (
@@ -247,6 +287,7 @@ export default function App() {
         </div>
       </main>
 
+      {/* ---------------- INPUT BAR ---------------- */}
       <footer className="input-bar">
         <div className="input-wrapper">
           <input

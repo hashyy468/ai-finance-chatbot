@@ -2,7 +2,7 @@
  * Finance Chat API
  */
 export async function sendFinanceChat(message, sessionId) {
-  const res = await fetch("/chat/api/chat", {
+  const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, sessionId })

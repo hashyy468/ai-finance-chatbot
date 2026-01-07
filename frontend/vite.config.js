@@ -5,15 +5,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      "/api/chat": {
+        target: "http://localhost:4000",
+        changeOrigin: true
+      },
       "/api": {
         target: "http://localhost:3000",
         changeOrigin: true
-      },
-      "/chat": {
-        target: "http://localhost:4000",
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/chat/, "")
       }
     }
   }
 });
+
