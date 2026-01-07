@@ -14,10 +14,17 @@ export default function App() {
   const [theme, setTheme] = useState("dark");
   const [chatStarted, setChatStarted] = useState(false);
 
-  // 🔘 mode toggle: BOTH | EXPENSE | FINANCE
-  const [mode, setMode] = useState("both");
+  //  mode toggle: BOTH | EXPENSE | FINANCE
+  const [mode, setMode] = useState("finance");
 
-  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
+  function generateSessionId() {
+    return (
+      Date.now().toString(36) +
+      Math.random().toString(36).substring(2, 10)
+    );
+  }
+
+  const [sessionId, setSessionId] = useState(() => generateSessionId());
 
   const chatEndRef = useRef(null);
   const typingTimerRef = useRef(null);
@@ -96,29 +103,28 @@ export default function App() {
           res = await categorizeExpenseAI(text);
         }
 
+        const confidence =
+          res.confidence > 1
+            ? Math.round(res.confidence)
+            : Math.round(res.confidence * 100);
+
         responseText =
           `📊 Expense Categorized\n\n` +
           `Category: ${res.category}\n` +
           `Method: ${res.method}\n` +
-          `Confidence: ${Math.round(res.confidence * 100)}%`;
+          `Confidence: ${confidence}%`;
 
-        followUps = [
-          "Add this to monthly budget",
-          "Show similar past expenses",
-          "Tips to reduce this expense"
-        ];
+        followUps = [];
 
         disclaimer =
           "This categorization is an estimate and may not be fully accurate.";
       } else {
         const data = await sendFinanceChat(text, sessionId);
+
         responseText = data.response.summary;
 
-        followUps = [
-          "Can you give an example?",
-          "How do I apply this?",
-          "What should I do next?"
-        ];
+        // ✅ FIX: USE BACKEND FOLLOW-UPS (NO HARDCODING)
+        followUps = data.response.followUps || [];
 
         disclaimer =
           "This is general financial information, not professional financial advice.";
@@ -143,7 +149,7 @@ export default function App() {
     setInput("");
     setLoading(false);
     setChatStarted(false);
-    setSessionId(crypto.randomUUID());
+    setSessionId(generateSessionId());
   }
 
   return (
@@ -188,13 +194,13 @@ export default function App() {
             <section className="welcome-panel">
               <h2>Hi, I’m your AI Finance Assistant</h2>
               <p className="hero-subtitle">
-                Ask finance questiions or categorize any expenses.
+                Ask finance questions or categorize any expenses.
               </p>
 
               <div className="starter-pills">
                 {[
                   "How should I budget my salary?",
-                  "Netflix subscription",
+                  "Credit Cards",
                   "Uber ride to airport"
                 ].map(q => (
                   <button key={q} onClick={() => handleSend(q)}>

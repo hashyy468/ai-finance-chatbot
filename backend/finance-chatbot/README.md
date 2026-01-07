@@ -9,20 +9,18 @@ It is designed with **safety, predictability, and real-world fintech constraints
 
 ---
 
-## Features
-
 - Answers questions on:
   - Budgeting
   - Savings
   - EMIs
-  - Credit
+  - Credit cards
   - Basic investing
-- Intent detection
-- Rule-based guaranteed responses
-- LLM-powered explanations
-- Session-based memory
-- Follow-up suggestions
-- Mandatory disclaimers
+- Rule-based intent detection
+- Deterministic responses for sensitive queries
+- LLM-powered explanations when required
+- Session-based conversational memory
+- Context-aware follow-up suggestions
+- Mandatory financial disclaimers
 
 ---
 
@@ -46,11 +44,8 @@ Structured JSON Response
 ## Why This Architecture?
 
 - Finance is a sensitive domain
-
-- Deterministic logic ensures safety
-
+- Rules ensure safety and predictability
 - LLM adds flexibility without risking hallucinations
-
 - Local inference avoids external API dependency
 
 ## Folder Structure
@@ -88,9 +83,9 @@ finance-chatbot/
     "summary": "A common guideline is the 50-30-20 rule...",
     "disclaimer": "This is general financial information, not financial advice."
   },
-  "followUps": [
-    "Can you give an example?",
-    "How do I apply this?"
+   "followUps": [
+    "See a practical example",
+    "Customize this plan"
   ]
 }
 ```

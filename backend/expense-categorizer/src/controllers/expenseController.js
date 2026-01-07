@@ -5,27 +5,34 @@ const categorizeExpense = async (req, res) => {
   const { description } = req.body;
 
   if (!description || typeof description !== "string") {
-    return res.status(400).json({
-      error: "Description must be a valid string"
+    return res.status(400).json({ error: "Invalid description" });
+  }
+
+  const ruleResult = categorizeByRule(description);
+
+  if (ruleResult) {
+    return res.json({
+      description,
+      category: ruleResult.category,
+      confidence: ruleResult.confidence, // 0–1
+      method: "rule"
     });
   }
 
-  let category = categorizeByRule(description);
-  let method = "rule";
-  let confidence = 0.9; // default confidence for rule-based
-
-  if (!category) {
-    category = await categorizeByAI(description);
-    method = "ai";
-    confidence = 0.6; // lower confidence for AI fallback
-  }
-
-  res.json({
+  const aiResult = await categorizeByAI(description);
+  return res.json({
     description,
-    category,
-    method,
-    confidence
+    category: aiResult.category,
+    confidence: aiResult.confidence, // 0–1
+    method: "ai"
   });
 };
 
-module.exports = { categorizeExpense };
+// 🔹 Explicit AI-only endpoint
+const categorizeExpenseAI = async (req, res) => {
+  const { description } = req.body;
+  const aiResult = await categorizeByAI(description);
+  res.json(aiResult);
+};
+
+module.exports = { categorizeExpense, categorizeExpenseAI };

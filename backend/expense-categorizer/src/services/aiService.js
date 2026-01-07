@@ -12,16 +12,16 @@ const VALID_CATEGORIES = [
   "Other"
 ];
 
-const categorizeByAI = async (description) => {
+async function categorizeByAI(description) {
   try {
     const prompt = `
-Categorize the following expense into ONE category:
+Categorize the expense into ONE category:
 Food, Transport, Shopping, Utilities, Entertainment, Other.
 
-Expense: "${description}"
+Return ONLY valid JSON:
+{ "category": "Food", "confidence": 0.0 }
 
-Respond in JSON:
-{ "category": "...", "confidence": 0.xx }
+Expense: "${description}"
 `;
 
     const response = await fetch(GROQ_API_URL, {
@@ -33,27 +33,32 @@ Respond in JSON:
       body: JSON.stringify({
         model: MODEL,
         messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-        max_tokens: 50
+        temperature: 0.2,
+        max_tokens: 40
       })
     });
 
     const data = await response.json();
-    const parsed = JSON.parse(
-      data.choices?.[0]?.message?.content || "{}"
-    );
+    const raw = data?.choices?.[0]?.message?.content || "{}";
+    const parsed = JSON.parse(raw);
 
     return {
       category: VALID_CATEGORIES.includes(parsed.category)
         ? parsed.category
         : "Other",
-      confidence: parsed.confidence || 0.65,
+      confidence:
+        typeof parsed.confidence === "number"
+          ? Math.min(Math.max(parsed.confidence, 0.6), 0.95)
+          : 0.7,
       method: "ai"
     };
-
-  } catch (err) {
-    return { category: "Other", confidence: 0.6, method: "ai" };
+  } catch {
+    return {
+      category: "Other",
+      confidence: 0.6,
+      method: "ai"
+    };
   }
-};
+}
 
 module.exports = { categorizeByAI };

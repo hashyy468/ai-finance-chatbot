@@ -3,7 +3,7 @@
 ## Overview
 
 This is the **frontend interface** for the AI Finance Assistant.  
-It provides a clean, chat-based experience for interacting with both:
+It provides a clean, chat-based experience for interacting with:
 
 - Finance chatbot
 - Expense categorization system
@@ -19,7 +19,7 @@ The UI is designed to feel **modern, intuitive, and fintech-grade**.
   - **BOTH** (auto-detect)
   - **EXPENSE** (force categorization)
   - **FINANCE** (force finance answers)
-- Intent-aware follow-up suggestions
+- Context-aware follow-up suggestions
 - Clear financial disclaimers
 - Dark theme with polished UI
 - Session-aware conversations
@@ -48,9 +48,7 @@ frontend/
 ## Architecture Notes
 
 - Uses Vite proxy to communicate with both backends
-
 - Business logic is kept minimal in UI
-
 - Backend decides intent and response type
 - UI only renders structured responses
 
@@ -86,9 +84,7 @@ http://localhost:5173
 ## Disclaimer Handling
 
 - Finance responses display disclaimers automatically
-
 - Expense categorization includes estimation disclaimers
-
 - UI clearly differentiates informational vs actionable content
 
 

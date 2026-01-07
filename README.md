@@ -28,36 +28,27 @@ The system prioritizes:
 - Production-style deployment without code hacks  
 
 ---
+## Live Deployment
+
+The application has been deployed on a **Vultr Ubuntu VM**.
+
+### 🌐 Live URL
+http://155.138.225.140/
 
 ## System Architecture
 ```
-+-------------------------------+
-|  Frontend                     |
-|  React + Vite                 |
-|  Served via Nginx (Port 80)   |
-+---------------+---------------+
-                |
-                | REST APIs
-                |
-+---------------+---------------+
-| Finance Chatbot API           |
-| Node.js + Express             |
-| PM2 Managed (Port 4000)       |
-+---------------+---------------+
-                |
-                |
-+---------------+---------------+
-| Expense Categorizer API       |
-| Node.js + Express             |
-| PM2 Managed (Port 3000)       |
-+---------------+---------------+
-                |
-                | LLM fallback only
-                |
-        +------------------+
-        | Groq LLaMA 3.1   |
-        +------------------+
+## System Architecture
 
+Frontend (React + Vite)
+↓
+
+Finance Chatbot API (Node.js + Express)
+↓
+
+Expense Categorizer API (Node.js + Express)
+↓
+
+Groq LLaMA 3.1 (LLM fallback only)
 ```
 ---
 
@@ -76,21 +67,19 @@ The system prioritizes:
 
 ### Finance Chatbot Backend
 
-- Handles personal finance questions  
-- Rule-based intent detection (primary)  
-- AI fallback for complex queries  
-- Session-based conversational context  
-- Structured, safe responses  
+- Hybrid NLP approach
+- Rule-first logic
+- AI fallback for ambiguity
+- Confidence scoring
 
 ---
 
 ### Expense Categorization Backend
 
-- Categorizes expenses into predefined classes  
-- Hybrid approach:
-  - Rule-based (fast, deterministic)  
-  - AI-based fallback (semantic understanding)  
-- Confidence scoring and explainability  
+- Hybrid NLP approach
+- Rule-first logic
+- AI fallback for ambiguity
+- Confidence scoring  
 
 
 
@@ -106,6 +95,14 @@ The system prioritizes:
 - **Cloud**: Vultr VM (Ubuntu)  
 
 ---
+## Project Structure
+
+/frontend /backend
+
+Each folder contains its own README with setup instructions.
+
+___
+
 
 ## Deployment Summary (Vultr)
 
@@ -123,23 +120,14 @@ The system has been **fully deployed on the provided Vultr instance** using SSH 
 | Frontend (React + Vite)     | 80   | Served via Nginx     |
 
 ```
----
-
-### Deployment Characteristics
-
-- Backend services managed via **PM2** for persistence and recovery  
-- Frontend built using Vite and served as static assets via **Nginx**  
-- Environment variables managed via `.env` files  
-- No application logic changes required for deployment  
 
 ---
 
-## How Deployment Can Be Verified
-
+## Deployment Verification
 Deployment can be verified directly on the server:
 
+### Check running services
 ```bash
-# Check running services
 pm2 list
 ```
 ### Finance chatbot API
@@ -154,66 +142,17 @@ curl -X POST http://localhost:3000/api/categorize \
   -H "Content-Type: application/json" \
   -d '{"description":"Lunch at Starbucks"}'
 ```
-Successful responses confirm:
 
--Services are live
 
--AI integrations are functional
-
--Rule-based and AI fallback logic works as expected
-
-## Deployment Constraints
-- The Vultr instance was provided with SSH-only access.
-
-- Public firewall configuration (ports 80/443) is managed at the Vultr account level
-
-- Dashboard-level permissions were not provided
-
-- As a result, public internet exposure depends on account-level firewall rules
-
-- Despite this, the system is fully deployed, running, and can be publicly exposed immediately once firewall access is enabled.
-
-## Running Locally (Development)
-Each module can be run independently:
-
-### Frontend
-```
-cd frontend
-npm install
-npm run dev
-```
-### Finance-chatbot backend
-```
-cd backend/finance-chatbot
-npm install
-npm start
-```
-# Expense-categorizer backend
-```
-cd backend/expense-categorizer
-npm install
-npm start
-```
 ## Key Engineering Decisions
 - Clear separation between frontend and backend services
-
 - Deterministic logic prioritized before AI calls
-
 - PM2 used for backend reliability
-
-- Nginx used for production-grade frontend hosting
-
+- Nginx used for frontend hosting
 - No tunneling or temporary exposure tools used
 
 ## Future Enhancements
-- Persistent user budgets and expense history
-
-- Visual analytics and charts
-
-- User authentication
-
-- Multi-currency support
-
-- Improved intent disambiguation
-
-- Containerized deployment (Docker)
+- Persistent budgets and history
+- Analytics dashboards
+- User Authentication
+- Dockerized deployment
